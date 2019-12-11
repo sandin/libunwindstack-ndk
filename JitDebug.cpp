@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <sys/mman.h>
 
 #include <memory>
@@ -24,6 +25,11 @@
 #include <unwindstack/JitDebug.h>
 #include <unwindstack/Maps.h>
 #include <unwindstack/Memory.h>
+
+extern "C" const char* __gnu_basename(const char* path) {
+  const char* last_slash = strrchr(path, '/');
+  return (last_slash != nullptr) ? last_slash + 1 : path;
+}
 
 // This implements the JIT Compilation Interface.
 // See https://sourceware.org/gdb/onlinedocs/gdb/JIT-Interface.html
