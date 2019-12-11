@@ -40,4 +40,6 @@ else()
 endif()
 
 add_library(unwindstack STATIC ${UNWINDSTACK_SOURCES})
+target_include_directories(unwindstack PUBLIC ${UNWINDSTACK_ROOT}/include)
 target_link_libraries(unwindstack lzma)
+
