@@ -31,7 +31,7 @@
 #include <unwindstack/MapInfo.h>
 #include <unwindstack/Maps.h>
 #include <unwindstack/Unwinder.h>
-
+#include <libgen.h>
 #if !defined(NO_LIBDEXFILE_SUPPORT)
 #include <unwindstack/DexFiles.h>
 #endif
@@ -99,9 +99,9 @@ void Unwinder::FillInFrame(MapInfo* map_info, Elf* elf, uint64_t rel_pc, uint64_
     return;
   }
 
-  if (resolve_names_) {
+  // if (resolve_names_) {
     frame->map_name = map_info->name;
-  }
+  // }
   frame->map_offset = map_info->offset;
   frame->map_start = map_info->start;
   frame->map_end = map_info->end;

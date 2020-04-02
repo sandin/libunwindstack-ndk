@@ -26,6 +26,8 @@
 #include <unwindstack/Maps.h>
 #include <unwindstack/Memory.h>
 
+#include <libgen.h>
+
 extern "C" const char* __gnu_basename(const char* path) {
   const char* last_slash = strrchr(path, '/');
   return (last_slash != nullptr) ? last_slash + 1 : path;
