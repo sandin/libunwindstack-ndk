@@ -31,6 +31,9 @@
 namespace unwindstack {
 
 // Forward declarations.
+enum ArchEnum : uint8_t;
+
+// Forward declarations.
 class Memory;
 class Regs;
 template <typename AddressType>
@@ -84,7 +87,7 @@ class DwarfSection {
 
   virtual bool GetFdeOffsetFromPc(uint64_t pc, uint64_t* fde_offset) = 0;
 
-  virtual bool Log(uint8_t indent, uint64_t pc, uint64_t load_bias, const DwarfFde* fde) = 0;
+  virtual bool Log(uint8_t indent, uint64_t pc, uint64_t load_bias, const DwarfFde* fde, ArchEnum arch) = 0;
 
   virtual const DwarfFde* GetFdeFromIndex(size_t index) = 0;
 
@@ -92,7 +95,7 @@ class DwarfSection {
 
   virtual const DwarfFde* GetFdeFromOffset(uint64_t fde_offset) = 0;
 
-  virtual bool GetCfaLocationInfo(uint64_t pc, const DwarfFde* fde, dwarf_loc_regs_t* loc_regs) = 0;
+  virtual bool GetCfaLocationInfo(uint64_t pc, const DwarfFde* fde, dwarf_loc_regs_t* loc_regs, ArchEnum arch) = 0;
 
   virtual uint64_t GetCieOffsetFromFde32(uint32_t pointer) = 0;
 
@@ -148,9 +151,9 @@ class DwarfSectionImpl : public DwarfSection {
   const DwarfFde* GetFdeFromOffset(uint64_t offset) override;
   bool FillInFde(DwarfFde* fde);
 
-  bool GetCfaLocationInfo(uint64_t pc, const DwarfFde* fde, dwarf_loc_regs_t* loc_regs) override;
+  bool GetCfaLocationInfo(uint64_t pc, const DwarfFde* fde, dwarf_loc_regs_t* loc_regs, ArchEnum arch) override;
 
-  bool Log(uint8_t indent, uint64_t pc, uint64_t load_bias, const DwarfFde* fde) override;
+  bool Log(uint8_t indent, uint64_t pc, uint64_t load_bias, const DwarfFde* fde, ArchEnum arch) override;
 
  protected:
   bool EvalExpression(const DwarfLocation& loc, Memory* regular_memory, AddressType* value,

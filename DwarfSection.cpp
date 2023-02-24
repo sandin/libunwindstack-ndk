@@ -67,7 +67,7 @@ bool DwarfSection::Step(uint64_t pc, Regs* regs, Memory* process_memory, bool* f
 
     // Now get the location information for this pc.
     dwarf_loc_regs_t loc_regs;
-    if (!GetCfaLocationInfo(pc, fde, &loc_regs)) {
+    if (!GetCfaLocationInfo(pc, fde, &loc_regs, regs->Arch())) {
       return false;
     }
     loc_regs.cie = fde->cie;
@@ -563,8 +563,8 @@ bool DwarfSectionImpl<AddressType>::FillInFde(DwarfFde* fde) {
 
 template <typename AddressType>
 bool DwarfSectionImpl<AddressType>::GetCfaLocationInfo(uint64_t pc, const DwarfFde* fde,
-                                                       dwarf_loc_regs_t* loc_regs) {
-  DwarfCfa<AddressType> cfa(&memory_, fde);
+                                                       dwarf_loc_regs_t* loc_regs, ArchEnum arch) {
+  DwarfCfa<AddressType> cfa(&memory_, fde, arch);
 
   // Look for the cached copy of the cie data.
   auto reg_entry = cie_loc_regs_.find(fde->cie_offset);
@@ -586,8 +586,8 @@ bool DwarfSectionImpl<AddressType>::GetCfaLocationInfo(uint64_t pc, const DwarfF
 
 template <typename AddressType>
 bool DwarfSectionImpl<AddressType>::Log(uint8_t indent, uint64_t pc, uint64_t load_bias,
-                                        const DwarfFde* fde) {
-  DwarfCfa<AddressType> cfa(&memory_, fde);
+                                        const DwarfFde* fde, ArchEnum arch) {
+  DwarfCfa<AddressType> cfa(&memory_, fde, arch);
 
   // Always print the cie information.
   const DwarfCie* cie = fde->cie;
