@@ -71,6 +71,10 @@ class Regs {
 
   virtual void IterateRegisters(std::function<void(const char*, uint64_t)>) = 0;
 
+  virtual void ResetPseudoRegisters() {}
+  virtual bool SetPseudoRegister(uint16_t, uint64_t) { return false; }
+  virtual bool GetPseudoRegister(uint16_t, uint64_t*) { return false; }
+
   uint16_t total_regs() { return total_regs_; }
 
   static ArchEnum CurrentArch();

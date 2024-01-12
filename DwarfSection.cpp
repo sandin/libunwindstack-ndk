@@ -237,13 +237,19 @@ bool DwarfSectionImpl<AddressType>::Eval(const DwarfCie* cie, Memory* regular_me
 
     AddressType* reg_ptr;
     if (reg >= cur_regs->total_regs()) {
-      // Skip this unknown register.
-      continue;
-    }
-
-    reg_ptr = eval_info.regs_info.Save(reg);
-    if (!EvalRegister(&entry.second, reg, reg_ptr, &eval_info)) {
-      return false;
+      if (entry.second.type != DWARF_LOCATION_PSEUDO_REGISTER) {
+        // Skip this unknown register.
+        continue;
+      }
+      if (!eval_info.regs_info.regs->SetPseudoRegister(reg, entry.second.values[0])) {
+        last_error_.code = DWARF_ERROR_ILLEGAL_VALUE;
+        return false;
+      }
+    } else {
+      reg_ptr = eval_info.regs_info.Save(reg);
+      if (!EvalRegister(&entry.second, reg, reg_ptr, &eval_info)) {
+        return false;
+      }
     }
   }
 

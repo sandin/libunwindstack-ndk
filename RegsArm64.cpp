@@ -25,6 +25,7 @@
 #include <unwindstack/RegsArm64.h>
 #include <unwindstack/UcontextArm64.h>
 #include <unwindstack/UserArm64.h>
+#include <unwindstack/pac.h>
 
 namespace unwindstack {
 
@@ -43,7 +44,26 @@ uint64_t RegsArm64::sp() {
   return regs_[ARM64_REG_SP];
 }
 
+static uint64_t strip_pac(uint64_t pc, uint64_t mask) {
+  // If the target is aarch64 then the return address may have been
+  // signed using the Armv8.3-A Pointer Authentication extension. The
+  // original return address can be restored by stripping out the
+  // authentication code using a mask or xpaclri. xpaclri is a NOP on
+  // pre-Armv8.3-A architectures.
+  if (mask) {
+    pc &= ~mask;
+  } else {
+#if defined(__BIONIC__)
+    pc = __unwinding_bionic_clear_pac_bits(pc);
+#endif
+  }
+  return pc;
+}
+
 void RegsArm64::set_pc(uint64_t pc) {
+  if ((0 != pc) && IsRASigned()) {
+    pc = strip_pac(pc, pac_mask_);
+  }
   regs_[ARM64_REG_PC] = pc;
 }
 
@@ -146,6 +166,37 @@ bool RegsArm64::StepIfSignalHandler(uint64_t rel_pc, Elf* elf, Memory* process_m
     return false;
   }
   return true;
+}
+
+void RegsArm64::ResetPseudoRegisters(void) {
+  // DWARF for AArch64 says RA_SIGN_STATE should be initialized to 0.
+  this->SetPseudoRegister(Arm64Reg::ARM64_PREG_RA_SIGN_STATE, 0);
+}
+
+bool RegsArm64::SetPseudoRegister(uint16_t id, uint64_t value) {
+  if ((id >= Arm64Reg::ARM64_PREG_FIRST) && (id < Arm64Reg::ARM64_PREG_LAST)) {
+    pseudo_regs_[id - Arm64Reg::ARM64_PREG_FIRST] = value;
+    return true;
+  }
+  return false;
+}
+
+bool RegsArm64::GetPseudoRegister(uint16_t id, uint64_t* value) {
+  if ((id >= Arm64Reg::ARM64_PREG_FIRST) && (id < Arm64Reg::ARM64_PREG_LAST)) {
+    *value = pseudo_regs_[id - Arm64Reg::ARM64_PREG_FIRST];
+    return true;
+  }
+  return false;
+}
+
+bool RegsArm64::IsRASigned() {
+  uint64_t value;
+  auto result = this->GetPseudoRegister(Arm64Reg::ARM64_PREG_RA_SIGN_STATE, &value);
+  return (result && (value != 0));
+}
+
+void RegsArm64::SetPACMask(uint64_t mask) {
+  pac_mask_ = mask;
 }
 
 }  // namespace unwindstack

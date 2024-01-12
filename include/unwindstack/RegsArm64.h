@@ -23,6 +23,7 @@
 
 #include <unwindstack/Elf.h>
 #include <unwindstack/Regs.h>
+#include <unwindstack/MachineArm64.h>
 
 namespace unwindstack {
 
@@ -53,6 +54,18 @@ class RegsArm64 : public RegsImpl<uint64_t> {
   static Regs* Read(void* data);
 
   static Regs* CreateFromUcontext(void* ucontext);
+
+  void ResetPseudoRegisters() override;
+  bool SetPseudoRegister(uint16_t id, uint64_t value) override;
+  bool GetPseudoRegister(uint16_t id, uint64_t* value) override;
+
+  bool IsRASigned();
+
+  void SetPACMask(uint64_t mask);
+
+ protected:
+  uint64_t pseudo_regs_[Arm64Reg::ARM64_PREG_LAST - Arm64Reg::ARM64_PREG_FIRST];
+  uint64_t pac_mask_ = 0;
 };
 
 }  // namespace unwindstack
